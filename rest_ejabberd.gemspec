@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name              = "rest_ejabberd"
-  s.version           = "0.0.1"
+  s.version           = "0.0.2"
   s.summary           = "Ruby interface for ejabberd's mod_restful"
   s.description       = "Easy tool to use ejabberd's mod_restful from Ruby"
   s.authors           = ["elcuervo"]

@@ -10,16 +10,21 @@ class RestEjabberd
     @client.set_debug_output $stdout if ENV['DEBUG']
   end
 
-  def register(username, password, host = @api.host)
+  def register(username, password)
+    check_for_host username
     url = @api + "admin"
+    username, host = username.split('@')
+
     request = prepare_request(Net::HTTP::Post.new(url.request_uri))
     request.body = command('register', username, host, password)
 
     JSON.parse @client.request(request).body
   end
 
-  def unregister(username, password, host = @api.host)
+  def unregister(username, password)
+    check_for_host username
     url = @api + "admin"
+    username, host = username.split('@')
     request = prepare_request(Net::HTTP::Post.new(url.request_uri))
     request.body = command('unregister', username, host)
 
@@ -27,21 +32,29 @@ class RestEjabberd
     response.has_key?("ok")
   end
 
-  def change_password(username, old_password, new_password, host = @api.host)
+  def change_password(username, old_password, new_password)
+    check_for_host username
     url = @api + 'register/change_password'
+    username, host = username.split('@')
     request = prepare_request(Net::HTTP::Post.new(url.request_uri))
     request.body = change_password_command(username, host, old_password, new_password)
 
     @client.request(request).body == '"ok"'
   end
 
-  def is_registered?(username, password, host = @api.host)
+  def is_registered?(username)
+    check_for_host username
+    username, host = username.split('@')
     url = @api + "register/is_registered?username=#{username}&host=#{host}&key=#{@secret}"
     request = prepare_request(Net::HTTP::Get.new(url.request_uri))
     @client.request(request).body == 'true'
   end
 
   private
+
+  def check_for_host(username)
+    raise IndexError unless username.include?("@")
+  end
 
   def command(command, *args)
     {
@@ -52,7 +65,6 @@ class RestEjabberd
   end
 
   def change_password_command(username, host, old_password, new_password)
-    # { "key":"secret", "username":"t1", "host":"localhost", "old_password":"hejhej", "new_password":"sansan" }
     {
       key: @secret,
       username: username,
